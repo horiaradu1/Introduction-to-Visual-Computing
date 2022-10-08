@@ -1,0 +1,113 @@
+<html>
+    <head>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+    </head>
+    <body>
+        <script type="module">
+        import * as THREE from "https://web.cs.manchester.ac.uk/three/three.js-master/build/three.module.js";
+            
+            var camera, scene, renderer, uniforms, geometry, material, mesh;
+            var clock = 0.0;
+
+            function shaderCube() {
+                uniforms = {
+                    time: {type: 'float', value: clock}
+                }
+                
+                // Question 8: By changing the 3 arguments of BoxGeometry: width, height and depth
+                //             We change the geometry: width, height and depth, of our cuboid shape, making it different and various sizes
+
+                geometry = new THREE.BoxGeometry(2, 1, 1);
+                material = new THREE.ShaderMaterial({
+                    uniforms: uniforms,
+                    fragmentShader: fragmentShader(),
+                    vertexShader: vertexShader(),
+                });
+
+                mesh = new THREE.Mesh(geometry, material);
+                scene.add(mesh);
+            }
+
+            function fragmentShader() {
+                return `
+                    uniform float time;
+                    varying vec3 vposInterpolated;
+
+                    void main() {
+                        gl_FragColor= vec4(vposInterpolated, 1.0);
+                        }
+                    `
+            }
+                //Question 10: You would change the color of the cuboid in the fragmentShader() function
+                //             The color is determined by the gl_FragColor variable
+
+            function vertexShader() {
+                return `
+                    uniform float time;
+                    vec4 p;
+                    varying vec3 vposInterpolated;
+
+                    void main() {
+                        p = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                        gl_Position = p;
+                        vposInterpolated = p.xyz;
+                    }
+                `
+            }
+
+            function animate() {
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate)
+                clock += 0.01;
+                uniforms.time.value = (Math.sin(clock)+1.0)/2.0;
+                mesh.rotation.x += 0.011;
+                mesh.rotation.y += 0.013;
+                // Question 9: To mess with the speed of the cuboid, we would have to change the values of
+                //             mesh.rotation.x and mesh.rotation.y
+                //             Increasing to go faster and decreasing to go slower
+            }
+
+            function init() {
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+                // Question 1: First argument is the field of view (fov).
+                //             Second argument is the aspect ratio
+                //             Third argument is near plane
+                //             Fourth argument is far plane
+                //             The purpose of those arguments is to set and modify our view of the scene.
+                // Question 2: When you increase and decrease the values, your perspective is being modified and what you see of the scene changed.
+                //             Basically, the camera
+                camera.position.z = 5;
+                // Question 3: This value basically means the position of the camera on the z axis.
+                // Question 4: The higher it is, the further the camera will be from our "screen", making the distance from the cube bigger.
+                //             And the lower it is, the closer it will be.
+                //             If it goes below 1, we will not be able to see the object anymore (it being technically "behind" the screen).
+                renderer = new THREE.WebGLRenderer();
+                renderer.setClearColor(0x000055, 0.5);
+                // Question 5: The purpose of this is to change the colour of the background.
+                //             Anything that is not filled in by an object.
+                // Question 6: The first argument sets the hex code for the colour.
+                //             And the second one sets the degree of transparency, basically the opacity (alpha value).
+                renderer.setSize( window.innerWidth, window.innerHeight );
+                // Question 7: The arguments of renderer.setSize represent the size of our scene,
+                //             The dimensions of the rendered area we are looking at.
+                //             By changing the values, we will have a fixed size for the renderer,
+                //             Instead of having it picked to be our exact window size.
+                document.body.appendChild( renderer.domElement );
+                shaderCube();
+
+                
+                }
+            
+            
+            init();
+
+            animate();
+        </script>
+    </body>
+</html>
